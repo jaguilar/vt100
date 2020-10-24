@@ -4,13 +4,13 @@ import (
 	"bufio"
 	"flag"
 	"fmt"
+	"golang.org/x/sys/unix"
 	"io"
 	"io/ioutil"
 	"net/http"
 	"os"
 	"os/exec"
 	"sync"
-	"syscall"
 	"time"
 
 	"github.com/facebookgo/httpdown"
@@ -29,22 +29,22 @@ func init() {
 	flag.IntVar(&port, "port", 0, "open a debug server on port")
 }
 
-func tcgetattr(fd uintptr) (syscall.Termios, error) {
-	var t syscall.Termios
+func tcgetattr(fd uintptr) (unix.Termios, error) {
+	var t unix.Termios
 	if err := termios.Tcgetattr(fd, &t); err != nil {
 		return t, fmt.Errorf("tcgetattr: %v", err)
 	}
 	return t, nil
 }
 
-func tcsetattr(fd uintptr, t syscall.Termios) error {
+func tcsetattr(fd uintptr, t unix.Termios) error {
 	if err := termios.Tcsetattr(fd, termios.TCSAFLUSH, &t); err != nil {
 		return fmt.Errorf("tcsetattr: %v", err)
 	}
 	return nil
 }
 
-func makeRaw(fd uintptr) (syscall.Termios, error) {
+func makeRaw(fd uintptr) (unix.Termios, error) {
 	orig, err := tcgetattr(fd)
 	if err != nil {
 		return orig, err
